@@ -177,12 +177,13 @@ class SubscriptionRegistry(object):
         while not self._exiting:
             try:
                 logger.debug("Polling for Vera changes")
-                device_data, new_timestamp = (
-                    controller.get_changed_devices(timestamp))
+                device_data, new_timestamp = controller.get_changed_devices(timestamp)
                 if new_timestamp['dataversion'] != timestamp['dataversion']:
+                    logger.debug("Dataversion changed: {0} -> {1}".format(timestamp, new_timestamp))
                     alert_data = controller.get_alerts(timestamp)
                     data_changed = True
                 else:
+                    logger.debug("Dataversion unchanged: {0} -> {1}".format(timestamp, new_timestamp))
                     data_changed = False
                 timestamp = new_timestamp
             except requests.RequestException as ex:
@@ -197,11 +198,16 @@ class SubscriptionRegistry(object):
                 raise
             else:
                 logger.debug("Poll returned")
-                if not self._exiting:
+
+                if self._exiting:
+                    logger.debug("Exit flag is set")
+                else:
                     if data_changed:
+                        logger.debug("Changes found in poll interval; handling events")
                         self._event(device_data, alert_data)
                     else:
                         logger.debug("No changes in poll interval")
+                    logger.debug("Sleeping...")
                     time.sleep(1)
 
                 continue
