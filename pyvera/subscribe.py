@@ -78,7 +78,7 @@ class SubscriptionRegistry(object):
         # Find unique device_ids that have data across both device_data and alert_data
         device_ids = set()
         [device_ids.add(int(device_data['id'])) for device_data in device_data_list]
-        [device_ids.add(int(alert_data['PK_Device'])) for alert_data in device_alert_list]
+        [device_ids.add(int(alert_data['PK_Device'])) for alert_data in device_alert_list if 'PK_Device' in alert_data]
 
         for device_id in device_ids:
             device_list = self._devices.get(device_id, ())
